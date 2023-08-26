@@ -17,7 +17,7 @@ app.use(express.json())
 
 
 app.get('/', (req, res) => {
-    res.send('Empower Rise Website Running!')
+    res.send({status:true,text:'Empower Rise Website Running!'});
 })
 
 app.listen(port, () => {
