@@ -8,6 +8,9 @@ async function run() {
         await client.connect();
         const usersCollection = client.db('empowerRise').collection('users');
         const donation = client.db('empowerRise').collection('donation');
+
+        const blogsCollection = client.db('empowerRise').collection('blogs')
+
         userRouter.route('/users')
             .post(async (req, res) => {
                 const user = req.body;
@@ -17,6 +20,17 @@ async function run() {
                     return res.send({ message: 'user already exists' })
                 }
                 const result = await usersCollection.insertOne(user);
+                res.send(result)
+            })
+        userRouter.route('/blogs')
+            .post(async (req, res) => {
+                const user = req.body;
+                const query = { email: user.email }
+                const existingUser = await usersCollection.findOne(query)
+                if (existingUser) {
+                    return res.send({ message: 'user already exists' })
+                }
+                const result = await blogsCollection.insertOne(user);
                 res.send(result)
             })
 
