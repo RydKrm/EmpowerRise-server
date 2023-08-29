@@ -34,7 +34,7 @@ async function run() {
                 res.send(result)
             })
 
-            //ryd - 27-8-23 
+            //ryd - 27-8-23
             userRouter.route('/findUserByEmail')
             .post(async(req,res)=>{
                 const email = req.body;
@@ -49,6 +49,78 @@ async function run() {
                 await donation.insertOne(data);
                 res.send({status:true});
             })
+
+            //     let sortPipeLine = [];
+
+
+              // if (data.sortBy === 'latest') {
+              //   let [year, month, day] = $dayLeft.match(/\d+/g);
+              //   sortPipeLine.push({
+              //     $addFields: {
+              //       year :{$toInt:year},
+              //       month :{$toInt:month},
+              //       day : {$toInt:day}
+              //     },
+              //   });
+              //   sortPipeLine.push({ $sort: { year: 1, month: 1, day: 1 } });
+              // } else if (data.sortBy === 'newest') {
+              //   let [year, month, day] = $dayLeft.match(/\d+/g);
+              //   sortPipeLine.push({
+              //     $addFields: {
+              //       year :{$toInt:year},
+              //       month :{$toInt:month},
+              //       day : {$toInt:day}
+              //     },
+              //   });
+              //   sortPipeLine.push({ $sort: { year: -1, month: -1, day: -1}});
+              // }
+
+            //ryd 28-8-23
+            userRouter.route('/mainData')
+            .post(async(req,res)=>{
+                const data = req.body;
+               console.log("state ",data);
+                const page = data.page;
+                const sortBy = data.sortBy;
+                let query = {};
+                if (data.category) {
+                  query.category = data.category;
+                }
+                if (data.status) {
+                  query.status = data.status;
+                }
+                let findQuery = [{}];
+                if(data.category){
+                    findQuery.push({ category: data.category });
+                }
+                if(data.status){
+                    findQuery.push({ status: data.status });
+                }
+
+                let sort = {dayLeft:-1};
+                if(data.sortBy==='latest')sort = {dayLeft:-1}
+                if(data.sortBy==='newest')sort = {dayLeft:1};
+                if(data.sortBy==='lowToHigh') sort = {amount:1};
+                if (data.sortBy === "highToLow") sort = {amount:-1};
+
+                if(data.type==='donation'){
+                  const totalData = await donation.countDocuments(query);
+
+                  let perPage = 9;
+                  const prev = (page-1)*perPage;
+                  const now = page*perPage;
+                  if(now>totalData) perPage = totalData-prev;
+
+                //  console.log("total data ", totalData);
+                  let allData = await donation.find({ $and:findQuery }).sort(sort)
+                                           .skip(prev).limit(perPage).toArray();
+
+                  // console.log("filter data ",allData);
+                   const data = {totalData:totalData,allData:allData};
+                   res.send(data);
+                }
+            })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
