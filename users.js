@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongodb');
 const client = require('./client');
 const express = require('express');
 const userRouter = express.Router();
@@ -121,6 +122,20 @@ async function run() {
                 }
             })
 
+
+        userRouter.route('/blogs')
+            .get(async (req, res) => {
+                const result = await blogsCollection.find().toArray()
+                res.send(result)
+            })
+
+
+        userRouter.route('/blogs/:id')
+            .get(async (req, res) => {
+                const blogId = req.params.id;
+                const result = await blogsCollection.findOne({ _id: new ObjectId(blogId) });
+                res.send(result)
+            });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
