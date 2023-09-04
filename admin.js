@@ -6,8 +6,21 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const category = client.db('empowerRise').collection('category');
+    
+  adminRouter.route('/getAllCategory')
+  .get(async(req,res)=>{
+    const result = await category.find().toArray();
+    res.send(result);
+  })
 
-
+  adminRouter.route('/addCategory')
+  .post(async(req,res)=>{
+    const data = req.body;
+   // console.log(data);
+    await category.insertOne(data);
+    res.send({status:true});
+  })
 
 
     // Send a ping to confirm a successful connection
