@@ -12,6 +12,7 @@ async function run() {
         const fundApply = client.db('empowerRise').collection('fundApply');
         const donationPayment = client.db('empowerRise').collection('donationPayment');
         const blogsCollection = client.db('empowerRise').collection('blogs');
+        const notification = client.db('empowerRise').collection('notification');
 
         userRouter.route('/users')
             .post(async (req, res) => {
@@ -121,7 +122,9 @@ async function run() {
                 }
                 res.send(result);
             })
-        userRouter
+
+
+            userRouter
             .route('/getSingleFund')
             .post(async (req, res) => {
                 const id = new ObjectId(req.body);
@@ -189,6 +192,68 @@ async function run() {
                 const result = await blogsCollection.findOne({ _id: new ObjectId(blogId) });
                 res.send(result)
             });
+
+       //ryd 6-9-23
+       userRouter
+       .route('/getDonationList')
+       .post(async(req,res)=>{
+        const userId = req.body.userId;
+         const result = await donation.find({userId:userId}).toArray();
+         res.send(result);
+       })
+
+       userRouter
+       .route('/getfundList')
+       .post(async(req,res)=>{
+        const userId = req.body.userId;
+         const result = await fund.find({userId:userId}).toArray();
+         res.send(result);
+       })
+
+       userRouter
+       .route('/fundAllApply')
+       .post(async(req,res)=>{
+         const postId = req.body.postId;
+         const result = await fundApply.find({$and:[{postId},{status:'pending'}]}).toArray();
+         res.send(result);
+       })
+
+       userRouter
+       .route('/findUserName')
+       .post(async(req,res)=>{
+         const id = new ObjectId(req.body.id);
+         const result = await usersCollection.findOne({_id:id},{projection:{name:true,_id:false}});
+         res.send(result);
+       })
+
+       userRouter
+       .route('/fundStatusUpdate')
+       .post(async(req,res)=>{
+         const id = req.body.id;
+         const status = req.body.status;
+       })
+   //notification
+   userRouter
+   .route('/getUserNotification')
+   .post(async(req,res)=>{
+     const userId = req.body.userId;
+     const result = await notification.find({userId}).toArray();
+     res.send(result);
+   })
+
+   userRouter.route('/updateNotification')
+   .post(async(req,res)=>{
+     const id = new ObjectId(req.body.id);
+     await notification.updateOne({_id:id},{$set:{isRead:true}});
+     res.send({status:true})
+   })
+
+   userRouter.route('/deleteNotification')
+   .post(async(req,res)=>{
+     const id = new ObjectId(req.body.id);
+     await notification.deleteOne({_id:id});
+     res.send({status:true});
+   })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
