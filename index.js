@@ -5,15 +5,16 @@ const app = express()
 const port = process.env.PORT || 5000;
 
 const adminRouter = require('./admin');
-const userRouter=require('./users')
-
+const userRouter=require('./users');
+const commentRouter = require('./comment');
 
 app.use(cors())
 app.use(express.json())
 
   app.use('/',adminRouter);
   app.use('/',userRouter);
-  
+  app.use('/',commentRouter);
+
 
 
 app.get('/', (req, res) => {
