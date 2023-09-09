@@ -45,16 +45,13 @@ async function run() {
     })
 
 
-
-
-
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log("Pinged your deployment from comment.");
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
   }
-}
-run().catch(console.dir);
-module.exports = commentRouter;
+ }
+ run().catch(console.dir);
+ module.exports = commentRouter;
