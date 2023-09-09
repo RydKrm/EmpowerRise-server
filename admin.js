@@ -100,6 +100,52 @@ async function run() {
    await notification.insertOne(notifi);
   })
 
+ //ryd - 9-9-23
+  adminRouter.route('/getEditPostList')
+  .post(async(req,res)=>{
+    const type = req.body.type;
+    if(type==='fund'){
+      const result = await fund.find({status:'processing'}).sort({dayLeft:1}).toArray();
+      res.send(result);
+    } else if(type==='donation'){
+      const result = await donation.find({status:'processing'}).sort({dayLeft:1}).toArray();
+      res.send(result);
+    }
+  })
+
+  adminRouter.route('/adminPostStatusUpdate')
+  .post(async(req,res)=>{
+    const data = req.body;
+    const id = new ObjectId(data.id);
+    const status = req.body.status;
+    if(data.type==='donation'){
+        await donation.updateOne({_id:id},{$set:{status}});
+        res.send({status:true});
+    } else if(data.type==='fund'){
+        await fund.updateOne({_id:id},{$set:{status}});
+        res.send({status:true});
+    }
+
+   //notification
+   let userId;
+   if(data.type==='fund'){
+     userId = await fund.findOne({ _id: id }, { projection: { userId: true,title:true, _id: false }});
+   }else if(data.type==='donation'){
+     userId = await donation.findOne({ _id: id }, { projection: { userId: true,title:true, _id: false }});
+   }
+    const notifi = {
+      isRead:false,
+      role:'user',
+      postId:data.id,
+      userId:userId.userId,
+      description:`Your post '${userId.title}' for ${data.type} is set ${data.status} by admin.`
+    }
+    await notification.insertOne(notifi);
+
+
+  })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
