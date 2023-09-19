@@ -190,7 +190,7 @@ async function run() {
                role:'user',
                userId:postName.userId,
                postId,
-               description:`${data.name} is applied for fund in your '${title}' post`
+               description:`${data.userName} is applied for fund in your '${title}' post`
              }
              await notification.insertOne(notif);
 
@@ -264,7 +264,7 @@ async function run() {
    .route('/getUserNotification')
    .post(async(req,res)=>{
      const userId = req.body.userId;
-     const result = await notification.find({userId}).toArray();
+     const result = await notification.find({userId}).sort({_id:-1}).toArray();
      res.send(result);
    })
 
@@ -303,6 +303,13 @@ async function run() {
      const data = await donation.find({}).limit(5).toArray();
      res.send(data);
    })
+
+  userRouter.route('/getFeaturesDonation')
+  .get(async(req,res)=>{
+    const data = await fund.find({}).limit(6).toArray();
+    res.send(data);
+  })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
