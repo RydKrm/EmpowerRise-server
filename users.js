@@ -31,7 +31,7 @@ async function run() {
                 res.send(result)
             })
 
-        //ryd - 27-8-23
+      
         userRouter.route('/findUserByEmail')
             .post(async (req, res) => {
                 const email = req.body;
@@ -54,7 +54,7 @@ async function run() {
                 res.send({ status: true });
             })
 
-        //ryd 28-8-23
+       
         userRouter.route('/mainData')
             .post(async (req, res) => {
                 const data = req.body;
@@ -106,7 +106,7 @@ async function run() {
                 }
             })
 
-        //ryd 30-8-23
+     
 
         userRouter
             .route('/getSingleDonation')
@@ -161,7 +161,6 @@ async function run() {
             .route('/applyFund')
             .post(async (req, res) => {
                 const data = req.body;
-                console.log('apply fund ', data);
                 await fundApply.insertOne(data);
                 res.send({ status: true });
             })
