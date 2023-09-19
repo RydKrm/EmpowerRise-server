@@ -21,6 +21,36 @@ async function run() {
       const data = req.body ;
       await comment.insertOne(data);
       res.send({status:true});
+
+    //notification
+    let postName;
+    let userId;
+    console.log('type ',data.type);
+    postId = new ObjectId(data.postId);
+    if(data.type==='donation'){
+    const post = await donation.findOne({_id:postId});
+    userId = post.userId;
+    postName = post.title;
+    } else if(data.type==='fund'){
+    const  post = await fund.findOne({_id:postId});
+      postName = post.title;
+      userId = post.userId;
+    } else{
+    const  post = await blogs.findOne({_id:postId});
+      postName = post.title;
+      userId = post.userId;
+    }
+
+    let notif = {
+      isRead:false,
+      userId:userId,
+      postId:data.postId,
+      role:'user',
+      description:`${data.userName} is comment your post '${postName}'`
+    }
+
+    await notification.insertOne(notif);
+
     })
 
     commentRouter.route('/getCommentList')
@@ -35,6 +65,43 @@ async function run() {
       const data = req.body;
       await reply.insertOne(data);
       res.send({status:true});
+
+      //notification
+      let postName;
+      let userId;
+    //  console.log('type ',data.type);
+      commentId = new ObjectId(data.commentId);
+
+      const post = await comment.findOne({_id:commentId}); console.log('reply post ', post);
+      let postId = new ObjectId(post.postId);
+      let type = post.type;
+      if(type==='donation'){
+        if(data.isAnonymous){
+          data.userName = 'Anonymous '
+        }
+      const post = await donation.findOne({_id:postId});
+      userId = post.userId;
+      postName = post.title;
+      } else if(type==='fund'){
+      const  post = await fund.findOne({_id:postId});
+        postName = post.title;
+        userId = post.userId;
+      } else{
+      const  post = await blogs.findOne({_id:postId});
+        postName = post.title;
+        userId = post.userId;
+      }
+
+      let notif = {
+        isRead:false,
+        userId:userId,
+        postId:post.postId,
+        role:'user',
+        description:`${data.userName} is reply to your post '${postName}'`
+      }
+
+      await notification.insertOne(notif);
+
     })
 
     commentRouter.route('/getReplyList')

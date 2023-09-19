@@ -95,7 +95,7 @@ async function run() {
    if(data.type==='fundApply'){
      const postId = new ObjectId(userId.postId)
      const title = await fund.findOne({_id:postId},{projection:{title:true,_id:false}});
-     notifi.description = `Your appication for fund ${title}  is ${data.status}ed by doner.`;
+     notifi.description = `Your appication for fund ${title.title}  is ${data.status}ed by doner.`;
    }
    await notification.insertOne(notifi);
   })
