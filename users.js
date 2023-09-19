@@ -12,6 +12,7 @@ async function run() {
         const fundApply = client.db('empowerRise').collection('fundApply');
         const donationPayment = client.db('empowerRise').collection('donationPayment');
         const blogsCollection = client.db('empowerRise').collection('blogs');
+        const notification = client.db('empowerRise').collection('notification');
 
         userRouter.route('/users')
             .post(async (req, res) => {
@@ -121,7 +122,9 @@ async function run() {
                 }
                 res.send(result);
             })
-        userRouter
+
+
+            userRouter
             .route('/getSingleFund')
             .post(async (req, res) => {
                 const id = new ObjectId(req.body);
@@ -147,7 +150,7 @@ async function run() {
             .route('/donationPayment')
             .post(async (req, res) => {
                 const data = req.body;
-                console.log("donationPayment ", data);
+                // console.log("donationPayment ", data);
                 const postId = new ObjectId(data.postId);
                 const preData = await donation.find({ _id: postId }).toArray();
                 const donatedPeople = preData[0].donatedPeople + 1;
@@ -155,6 +158,19 @@ async function run() {
                 await donation.updateOne({ _id: postId }, { $set: { collectedAmount: collectedAmount, donatedPeople: donatedPeople } });
                 await donationPayment.insertOne(data);
                 res.send({ status: true });
+
+               //notoficatoin
+                 let postName = await donation.findOne({_id:postId},{projection:{title:true,userId:true,_id:false}});
+                 const title = postName.title;
+
+                 const notif = {
+                   isRead:false,
+                   role:'user',
+                   userId:postName.userId,
+                   postId,
+                   description:`${data.userName} is donated ${data.donatedAmount} in your '${title}' post`
+                 }
+                 await notification.insertOne(notif);
             })
 
         userRouter
@@ -163,6 +179,21 @@ async function run() {
                 const data = req.body;
                 await fundApply.insertOne(data);
                 res.send({ status: true });
+
+                // notification
+            const postId = new ObjectId(data.postId);
+             let postName = await fund.findOne({_id:postId},{projection:{title:true,userId:true,_id:false}});
+             const title = postName.title;
+
+             const notif = {
+               isRead:false,
+               role:'user',
+               userId:postName.userId,
+               postId,
+               description:`${data.userName} is applied for fund in your '${title}' post`
+             }
+             await notification.insertOne(notif);
+
             })
 
         userRouter
@@ -188,6 +219,96 @@ async function run() {
                 const result = await blogsCollection.findOne({ _id: new ObjectId(blogId) });
                 res.send(result)
             });
+
+       //ryd 6-9-23
+       userRouter
+       .route('/getDonationList')
+       .post(async(req,res)=>{
+        const userId = req.body.userId;
+         const result = await donation.find({userId:userId}).toArray();
+         res.send(result);
+       })
+
+       userRouter
+       .route('/getfundList')
+       .post(async(req,res)=>{
+        const userId = req.body.userId;
+         const result = await fund.find({userId:userId}).toArray();
+         res.send(result);
+       })
+
+       userRouter
+       .route('/fundAllApply')
+       .post(async(req,res)=>{
+         const postId = req.body.postId;
+         const result = await fundApply.find({$and:[{postId},{status:'pending'}]}).toArray();
+         res.send(result);
+       })
+
+       userRouter
+       .route('/findUserName')
+       .post(async(req,res)=>{
+         const id = new ObjectId(req.body.id);
+         const result = await usersCollection.findOne({_id:id},{projection:{name:true,_id:false}});
+         res.send(result);
+       })
+
+       userRouter
+       .route('/fundStatusUpdate')
+       .post(async(req,res)=>{
+         const id = req.body.id;
+         const status = req.body.status;
+       })
+   //notification
+   userRouter
+   .route('/getUserNotification')
+   .post(async(req,res)=>{
+     const userId = req.body.userId;
+     const result = await notification.find({userId}).sort({_id:-1}).toArray();
+     res.send(result);
+   })
+
+   userRouter.route('/updateNotification')
+   .post(async(req,res)=>{
+     const id = new ObjectId(req.body.id);
+     await notification.updateOne({_id:id},{$set:{isRead:true}});
+     res.send({status:true})
+   })
+
+   userRouter.route('/deleteNotification')
+   .post(async(req,res)=>{
+     const id = new ObjectId(req.body.id);
+     await notification.deleteOne({_id:id});
+     res.send({status:true});
+   })
+
+   userRouter.route('/countNotofication')
+   .post(async(req,res)=>{
+     const userId = req.body.userId;
+     const total = await notification.countDocuments({ userId: userId });
+     res.send({total});
+   })
+
+   userRouter.route('/getUserInfo')
+   .post(async(req,res)=>{
+     const userId = req.body.userId;
+     const fundPost = await fund.countDocuments({userId:userId});
+     const donationPost = await donation.countDocuments({userId:userId});
+     const userInfo = {fundPost,donationPost};
+     res.send(userInfo);
+   })
+
+   userRouter.route('/getCampainDonation')
+   .get(async(req,res)=>{
+     const data = await donation.find({}).limit(5).toArray();
+     res.send(data);
+   })
+
+  userRouter.route('/getFeaturesDonation')
+  .get(async(req,res)=>{
+    const data = await fund.find({}).limit(6).toArray();
+    res.send(data);
+  })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
